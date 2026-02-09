@@ -36,6 +36,8 @@ li.done span{text-decoration:line-through;color:gray}
 <body>
 
 <h2>Taskify</h2>
+<p>A Simple Task Manager</p>
+<p>Created by: <b>Aljomar M. Rebuya BSIT 2D</b></p>
 
 <input id="taskInput" placeholder="Enter task">
 <button class="add" id="addBtn">+</button>
@@ -90,13 +92,11 @@ function createTask(text){
   del.textContent="X";
   del.className="delete";
 
-  // ✅ COMPLETE toggle
   check.addEventListener("change",()=>{
     li.classList.toggle("done",check.checked);
     updateCounts();
   });
 
-  // ✅ DELETE single
   del.addEventListener("click",(e)=>{
     e.stopPropagation();
     if(confirm(`Delete "${text}"?`)){
@@ -107,7 +107,6 @@ function createTask(text){
     }
   });
 
-  // ✅ EDIT
   span.addEventListener("dblclick",(e)=>{
     e.stopPropagation();
     const newText=prompt("Edit task:",text);
@@ -124,7 +123,7 @@ function createTask(text){
     updateCounts();
   });
 
-  // ⭐⭐⭐ REAL FIX: selection works anywhere on LI
+  // ✅ selection works anywhere on task
   li.addEventListener("click",()=>{
     li.classList.toggle("selected");
   });
