@@ -7,6 +7,8 @@
 <style>
   body {
     font-family: Arial, sans-serif;
+    background: white;
+    color: black;
   }
 
   input, button {
@@ -14,17 +16,17 @@
     margin: 2px;
   }
 
-  button.add { background-color: #4CAF50; color: white; }
-  button.sort { background-color: #2196F3; color: white; }
-  button.reset { background-color: #FFC107; color: black; }
-  button.delete { background-color: #F44336; color: white; }
-  button.theme { background-color: #9E9E9E; color: white; }
+  button.add { background:#4CAF50; color:white; }
+  button.sort { background:#2196F3; color:white; }
+  button.reset { background:#FFC107; color:black; }
+  button.delete { background:#F44336; color:white; }
+  button.theme { background:#9E9E9E; color:white; }
 
-  ul { padding-left: 0; }
-  li { list-style: none; margin: 5px 0; }
-  li span { margin-left: 5px; }
+  ul { padding-left:0; }
+  li { list-style:none; margin:5px 0; }
+  li span { margin-left:5px; }
 
-  li.done span { text-decoration: line-through; color: gray; }
+  li.done span { text-decoration:line-through; color:gray; }
 </style>
 </head>
 
@@ -42,14 +44,15 @@
 <button class="sort" onclick="sortAZ()">Sort A-Z</button>
 <button class="sort" onclick="sortZA()">Sort Z-A</button>
 <button class="reset" onclick="resetTasks()">Reset</button>
+<button class="theme" onclick="toggleTheme()">Theme</button>
 
 <ul id="taskList"></ul>
 
 <p>
-  Total Tasks: <span id="total">0</span> |
-  Completed: <span id="completed">0</span> |
-  Deleted: <span id="deleted">0</span> |
-  Edited: <span id="edited">0</span>
+Total Tasks: <span id="total">0</span> |
+Completed: <span id="completed">0</span> |
+Deleted: <span id="deleted">0</span> |
+Edited: <span id="edited">0</span>
 </p>
 
 <script>
@@ -60,20 +63,22 @@ let originalTasks = [];
 const input = document.getElementById("taskInput");
 const list = document.getElementById("taskList");
 
-input.addEventListener("keydown", e => {
-  if (e.key === "Enter") addTask();
+input.addEventListener("keydown", e=>{
+  if(e.key==="Enter") addTask();
 });
 
-function addTask() {
-  const text = input.value.trim();
-  if (text === "") {
+function addTask(textFromReset=null){
+  const text = textFromReset ?? input.value.trim();
+
+  if(text===""){
     alert("Empty task!");
     return;
   }
 
   // duplicate check
-  for (let li of list.children) {
-    if (li.querySelector("span").textContent === text) {
+  for(let li of list.children){
+    const t = li.querySelector("span").textContent.trim();
+    if(t === text){
       alert("Duplicate task!");
       return;
     }
@@ -82,18 +87,21 @@ function addTask() {
   const li = document.createElement("li");
 
   const check = document.createElement("input");
-  check.type = "checkbox";
-  check.onchange = updateCounts;
+  check.type="checkbox";
+  check.onchange=()=>{
+    li.classList.toggle("done",check.checked);
+    updateCounts();
+  };
 
   const span = document.createElement("span");
-  span.textContent = " " + text;
-  span.ondblclick = () => editTask(span);
+  span.textContent=text;
+  span.ondblclick=()=>editTask(span);
 
   const del = document.createElement("button");
-  del.className = "delete";
-  del.textContent = "X";
-  del.onclick = () => {
-    if (confirm("Delete this task?")) {
+  del.className="delete";
+  del.textContent="X";
+  del.onclick=()=>{
+    if(confirm("Delete this task?")){
       li.remove();
       deleted++;
       updateCounts();
@@ -105,53 +113,65 @@ function addTask() {
   li.appendChild(del);
   list.appendChild(li);
 
-  originalTasks.push(text);
-  input.value = "";
+  // ONLY save to original if user added it manually
+  if(textFromReset===null){
+    originalTasks.push(text);
+    input.value="";
+  }
+
   updateCounts();
 }
 
-function editTask(span) {
-  const newText = prompt("Edit task:", span.textContent.trim());
-  if (newText && newText !== span.textContent.trim()) {
-    span.textContent = " " + newText;
-    edited++;
-    updateCounts();
+function editTask(span){
+  const oldText = span.textContent.trim();
+  const newText = prompt("Edit task:",oldText);
+
+  if(!newText || newText.trim()==="" || newText===oldText) return;
+
+  span.textContent=newText.trim();
+  edited++;
+  updateCounts();
+}
+
+function updateCounts(){
+  document.getElementById("total").textContent=list.children.length;
+  document.getElementById("completed").textContent=
+    document.querySelectorAll("#taskList input[type=checkbox]:checked").length;
+  document.getElementById("deleted").textContent=deleted;
+  document.getElementById("edited").textContent=edited;
+}
+
+function sortAZ(){
+  [...list.children]
+    .sort((a,b)=>
+      a.querySelector("span").textContent
+      .localeCompare(b.querySelector("span").textContent)
+    )
+    .forEach(li=>list.appendChild(li));
+}
+
+function sortZA(){
+  [...list.children]
+    .sort((a,b)=>
+      b.querySelector("span").textContent
+      .localeCompare(a.querySelector("span").textContent)
+    )
+    .forEach(li=>list.appendChild(li));
+}
+
+function resetTasks(){
+  list.innerHTML="";
+  originalTasks.forEach(t=>addTask(t));
+}
+
+function toggleTheme(){
+  if(document.body.style.background==="black"){
+    document.body.style.background="white";
+    document.body.style.color="black";
+  }else{
+    document.body.style.background="black";
+    document.body.style.color="white";
   }
-}
-
-function updateCounts() {
-  document.getElementById("total").textContent = list.children.length;
-  document.getElementById("completed").textContent =
-    document.querySelectorAll("input[type=checkbox]:checked").length;
-  document.getElementById("deleted").textContent = deleted;
-  document.getElementById("edited").textContent = edited;
-}
-
-function sortAZ() {
-  [...list.children]
-    .sort((a,b)=>a.innerText.localeCompare(b.innerText))
-    .forEach(li=>list.appendChild(li));
-}
-
-function sortZA() {
-  [...list.children]
-    .sort((a,b)=>b.innerText.localeCompare(a.innerText))
-    .forEach(li=>list.appendChild(li));
-}
-
-function resetTasks() {
-  list.innerHTML = "";
-  originalTasks.forEach(t => {
-    input.value = t;
-    addTask();
-  });
-}
-
-function toggleTheme() {
-  document.body.style.background =
-    document.body.style.background === "black" ? "white" : "black";
-  document.body.style.color =
-    document.body.style.color === "white" ? "black" : "white";
 }
 </script>
 
