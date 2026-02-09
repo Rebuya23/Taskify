@@ -5,42 +5,30 @@
 <title>Taskify</title>
 
 <style>
-  body {
-    font-family: Arial, sans-serif;
-    background: white;
-    color: black;
-    transition: 0.3s;
-  }
+body{
+  font-family:Arial;
+  background:white;
+  color:black;
+  transition:.25s;
+}
 
-  input, button {
-    padding: 5px 10px;
-    margin: 2px;
-  }
+input,button{padding:6px 10px;margin:2px}
 
-  input:focus {
-    outline: 2px solid #2196F3;
-  }
+button.add{background:#4CAF50;color:white}
+button.sort{background:#2196F3;color:white}
+button.reset{background:#FFC107}
+button.delete{background:#F44336;color:white}
+button.theme{background:#9E9E9E;color:white}
 
-  button.add { background:#4CAF50; color:white; }
-  button.sort { background:#2196F3; color:white; }
-  button.reset { background:#FFC107; }
-  button.delete { background:#F44336; color:white; }
-  button.theme { background:#9E9E9E; color:white; }
-
-  ul { padding-left:0; }
-  li {
-    list-style:none;
-    margin:5px 0;
-    padding:5px;
-  }
-
-  li:hover { background:#eee; }
-  li.selected { background:#cce5ff; }
-
-  li.done span {
-    text-decoration: line-through;
-    color: gray;
-  }
+ul{padding-left:0}
+li{
+  list-style:none;
+  margin:5px 0;
+  padding:5px;
+}
+li:hover{background:#eee}
+li.selected{background:#cce5ff}
+li.done span{text-decoration:line-through;color:gray}
 </style>
 </head>
 
@@ -48,18 +36,17 @@
 
 <h2>Taskify</h2>
 <p>A Simple Task Manager</p>
-<p>Created by: <b>Aljomar M. Rebuya BSIT 2D</b></p>
 
-<input type="text" id="taskInput" placeholder="Enter task">
-<button class="add" onclick="addTask()">+</button>
+<input id="taskInput" placeholder="Enter task">
+<button class="add" id="addBtn">+</button>
 
 <br><br>
 
-<button class="sort" onclick="sortAZ()">Sort A-Z</button>
-<button class="sort" onclick="sortZA()">Sort Z-A</button>
-<button class="reset" onclick="resetTasks()">Reset</button>
-<button class="delete" onclick="deleteSelected()">Delete Selected</button>
-<button class="theme" onclick="toggleTheme()">Theme</button>
+<button class="sort" id="azBtn">Sort A-Z</button>
+<button class="sort" id="zaBtn">Sort Z-A</button>
+<button class="reset" id="resetBtn">Reset</button>
+<button class="delete" id="deleteSelBtn">Delete Selected</button>
+<button class="theme" id="themeBtn">Theme</button>
 
 <ul id="taskList"></ul>
 
@@ -71,91 +58,105 @@ Edited: <span id="edited">0</span>
 </p>
 
 <script>
-let originalTasks = [];
-let deleted = 0;
-let edited = 0;
+let originalTasks=[];
+let deleted=0;
+let edited=0;
+let dark=false;
 
-const input = document.getElementById("taskInput");
-const list = document.getElementById("taskList");
+const input=document.getElementById("taskInput");
+const list=document.getElementById("taskList");
 
-input.addEventListener("keydown", e => {
-  if (e.key === "Enter") addTask();
+document.getElementById("addBtn").onclick=addTask;
+document.getElementById("azBtn").onclick=sortAZ;
+document.getElementById("zaBtn").onclick=sortZA;
+document.getElementById("resetBtn").onclick=resetTasks;
+document.getElementById("deleteSelBtn").onclick=deleteSelected;
+document.getElementById("themeBtn").onclick=toggleTheme;
+
+input.addEventListener("keydown",e=>{
+  if(e.key==="Enter") addTask();
 });
 
 function createTask(text){
-  const li = document.createElement("li");
+  const li=document.createElement("li");
 
-  const check = document.createElement("input");
-  check.type = "checkbox";
-  check.onchange = () => {
-    li.classList.toggle("done", check.checked);
+  const check=document.createElement("input");
+  check.type="checkbox";
+  check.onclick=e=>e.stopPropagation();
+  check.onchange=()=>{
+    li.classList.toggle("done",check.checked);
     updateCounts();
   };
 
-  const span = document.createElement("span");
-  span.textContent = text;
-  span.ondblclick = () => editTask(span);
+  const span=document.createElement("span");
+  span.textContent=text;
+  span.ondblclick=e=>{
+    e.stopPropagation();
+    editTask(span);
+  };
 
-  const del = document.createElement("button");
-  del.textContent = "X";
-  del.className = "delete";
-  del.onclick = () => {
-    if(confirm(`Delete "${text}"?`)){
+  const del=document.createElement("button");
+  del.textContent="X";
+  del.className="delete";
+  del.onclick=e=>{
+    e.stopPropagation();
+    if(confirm(`Delete "${span.textContent}"?`)){
+      removeFromOriginal(span.textContent);
       li.remove();
       deleted++;
       updateCounts();
     }
   };
 
-  li.onclick = e => {
-    if(e.target.tagName !== "INPUT" && e.target.tagName !== "BUTTON"){
-      li.classList.toggle("selected");
-    }
+  li.onclick=()=>{
+    li.classList.toggle("selected");
   };
 
-  li.append(check, span, del);
+  li.append(check,span,del);
   list.appendChild(li);
 }
 
 function addTask(){
-  const text = input.value.trim();
-  if(text === "") return alert("Empty task!");
+  const text=input.value.trim();
+  if(!text) return alert("Empty task!");
 
-  if(originalTasks.some(t => t.toLowerCase() === text.toLowerCase()))
+  if(originalTasks.some(t=>t.toLowerCase()===text.toLowerCase()))
     return alert("Duplicate task!");
 
   originalTasks.push(text);
   createTask(text);
-
-  input.value = "";
+  input.value="";
   updateCounts();
 }
 
 function editTask(span){
-  const oldText = span.textContent;
-  const newText = prompt("Edit task:", oldText);
+  const oldText=span.textContent;
+  const newText=prompt("Edit task:",oldText);
+  if(!newText||newText===oldText) return;
 
-  if(!newText || newText === oldText) return;
-
-  if(originalTasks.some(t => t.toLowerCase() === newText.toLowerCase()))
+  if(originalTasks.some(t=>t.toLowerCase()===newText.toLowerCase()))
     return alert("Duplicate task!");
 
-  const index = originalTasks.indexOf(oldText);
-  originalTasks[index] = newText;
+  const i=originalTasks.indexOf(oldText);
+  if(i>-1) originalTasks[i]=newText;
 
-  span.textContent = newText;
+  span.textContent=newText;
   edited++;
   updateCounts();
 }
 
+function removeFromOriginal(text){
+  originalTasks=originalTasks.filter(t=>t!==text);
+}
+
 function deleteSelected(){
-  const selected = document.querySelectorAll(".selected");
-  if(selected.length === 0) return;
+  const selected=[...document.querySelectorAll(".selected")];
+  if(!selected.length) return;
 
   if(confirm(`Delete ${selected.length} selected tasks?`)){
     selected.forEach(li=>{
-      const text = li.querySelector("span").textContent;
-      originalTasks = originalTasks.filter(t=>t!==text);
+      const text=li.querySelector("span").textContent;
+      removeFromOriginal(text);
       li.remove();
       deleted++;
     });
@@ -164,35 +165,41 @@ function deleteSelected(){
 }
 
 function resetTasks(){
-  list.innerHTML = "";
-  originalTasks.forEach(t => createTask(t)); // ✅ no duplication
+  list.innerHTML="";
+  originalTasks.forEach(t=>createTask(t)); // FIXED: no duplication
   updateCounts();
 }
 
 function sortAZ(){
   [...list.children]
-    .sort((a,b)=>a.innerText.localeCompare(b.innerText))
+    .sort((a,b)=>
+      a.querySelector("span").textContent
+      .localeCompare(b.querySelector("span").textContent)
+    )
     .forEach(li=>list.appendChild(li));
 }
 
 function sortZA(){
   [...list.children]
-    .sort((a,b)=>b.innerText.localeCompare(a.innerText))
+    .sort((a,b)=>
+      b.querySelector("span").textContent
+      .localeCompare(a.querySelector("span").textContent)
+    )
     .forEach(li=>list.appendChild(li));
 }
 
 function toggleTheme(){
-  const dark = document.body.style.background === "black";
-  document.body.style.background = dark ? "white" : "black";
-  document.body.style.color = dark ? "black" : "white";
+  dark=!dark;
+  document.body.style.background=dark?"black":"white";
+  document.body.style.color=dark?"white":"black";
 }
 
 function updateCounts(){
-  document.getElementById("total").textContent = list.children.length;
-  document.getElementById("completed").textContent =
+  document.getElementById("total").textContent=list.children.length;
+  document.getElementById("completed").textContent=
     document.querySelectorAll(".done").length;
-  document.getElementById("deleted").textContent = deleted;
-  document.getElementById("edited").textContent = edited;
+  document.getElementById("deleted").textContent=deleted;
+  document.getElementById("edited").textContent=edited;
 }
 </script>
 
