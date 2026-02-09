@@ -82,7 +82,7 @@ function createTask(text){
 
   const check=document.createElement("input");
   check.type="checkbox";
-  check.onclick=e=>e.stopPropagation();
+  check.addEventListener("click",e=>e.stopPropagation());
   check.onchange=()=>{
     li.classList.toggle("done",check.checked);
     updateCounts();
@@ -98,7 +98,7 @@ function createTask(text){
   const del=document.createElement("button");
   del.textContent="X";
   del.className="delete";
-  del.onclick=e=>{
+  del.addEventListener("click",e=>{
     e.stopPropagation();
     if(confirm(`Delete "${span.textContent}"?`)){
       removeFromOriginal(span.textContent);
@@ -106,11 +106,12 @@ function createTask(text){
       deleted++;
       updateCounts();
     }
-  };
+  });
 
-  li.onclick=()=>{
+  // selection toggle
+  li.addEventListener("click",()=>{
     li.classList.toggle("selected");
-  };
+  });
 
   li.append(check,span,del);
   list.appendChild(li);
@@ -125,6 +126,7 @@ function addTask(){
 
   originalTasks.push(text);
   createTask(text);
+
   input.value="";
   updateCounts();
 }
@@ -150,8 +152,12 @@ function removeFromOriginal(text){
 }
 
 function deleteSelected(){
-  const selected=[...document.querySelectorAll(".selected")];
-  if(!selected.length) return;
+  const selected=[...list.querySelectorAll("li.selected")];
+
+  if(selected.length===0){
+    alert("No selected tasks.");
+    return;
+  }
 
   if(confirm(`Delete ${selected.length} selected tasks?`)){
     selected.forEach(li=>{
@@ -166,7 +172,7 @@ function deleteSelected(){
 
 function resetTasks(){
   list.innerHTML="";
-  originalTasks.forEach(t=>createTask(t)); // FIXED: no duplication
+  originalTasks.forEach(t=>createTask(t)); // ✅ no duplicates
   updateCounts();
 }
 
