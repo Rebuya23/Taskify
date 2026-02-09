@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Taskify</title>
+
+<style>
+  body {
+    font-family: Arial, sans-serif;
+  }
+
+  input, button {
+    padding: 5px 10px;
+    margin: 2px;
+  }
+
+  button.add { background-color: #4CAF50; color: white; }
+  button.sort { background-color: #2196F3; color: white; }
+  button.reset { background-color: #FFC107; color: black; }
+  button.delete { background-color: #F44336; color: white; }
+  button.theme { background-color: #9E9E9E; color: white; }
+
+  ul { padding-left: 0; }
+  li { list-style: none; margin: 5px 0; }
+  li span { margin-left: 5px; }
+
+  li.done span { text-decoration: line-through; color: gray; }
+</style>
+</head>
+
+<body>
+
+<h2>Taskify</h2>
+<p>A Simple Task Manager</p>
+<p>Name: <b>Aljomar M. Rebuya BSIT 2D</b></p>
+
+<input type="text" id="taskInput" placeholder="Enter task">
+<button class="add" onclick="addTask()">+</button>
+
+<br><br>
+
+<button class="sort" onclick="sortAZ()">Sort A-Z</button>
+<button class="sort" onclick="sortZA()">Sort Z-A</button>
+<button class="reset" onclick="resetTasks()">Reset</button>
+
+<ul id="taskList"></ul>
+
+<p>
+  Total Tasks: <span id="total">0</span> |
+  Completed: <span id="completed">0</span> |
+  Deleted: <span id="deleted">0</span> |
+  Edited: <span id="edited">0</span>
+</p>
+
+<script>
+let deleted = 0;
+let edited = 0;
+let originalTasks = [];
+
+const input = document.getElementById("taskInput");
+const list = document.getElementById("taskList");
+
+input.addEventListener("keydown", e => {
+  if (e.key === "Enter") addTask();
+});
+
+function addTask() {
+  const text = input.value.trim();
+  if (text === "") {
+    alert("Empty task!");
+    return;
+  }
+
+  // duplicate check
+  for (let li of list.children) {
+    if (li.querySelector("span").textContent === text) {
+      alert("Duplicate task!");
+      return;
+    }
+  }
+
+  const li = document.createElement("li");
+
+  const check = document.createElement("input");
+  check.type = "checkbox";
+  check.onchange = updateCounts;
+
+  const span = document.createElement("span");
+  span.textContent = " " + text;
+  span.ondblclick = () => editTask(span);
+
+  const del = document.createElement("button");
+  del.className = "delete";
+  del.textContent = "X";
+  del.onclick = () => {
+    if (confirm("Delete this task?")) {
+      li.remove();
+      deleted++;
+      updateCounts();
+    }
+  };
+
+  li.appendChild(check);
+  li.appendChild(span);
+  li.appendChild(del);
+  list.appendChild(li);
+
+  originalTasks.push(text);
+  input.value = "";
+  updateCounts();
+}
+
+function editTask(span) {
+  const newText = prompt("Edit task:", span.textContent.trim());
+  if (newText && newText !== span.textContent.trim()) {
+    span.textContent = " " + newText;
+    edited++;
+    updateCounts();
+  }
+}
+
+function updateCounts() {
+  document.getElementById("total").textContent = list.children.length;
+  document.getElementById("completed").textContent =
+    document.querySelectorAll("input[type=checkbox]:checked").length;
+  document.getElementById("deleted").textContent = deleted;
+  document.getElementById("edited").textContent = edited;
+}
+
+function sortAZ() {
+  [...list.children]
+    .sort((a,b)=>a.innerText.localeCompare(b.innerText))
+    .forEach(li=>list.appendChild(li));
+}
+
+function sortZA() {
+  [...list.children]
+    .sort((a,b)=>b.innerText.localeCompare(a.innerText))
+    .forEach(li=>list.appendChild(li));
+}
+
+function resetTasks() {
+  list.innerHTML = "";
+  originalTasks.forEach(t => {
+    input.value = t;
+    addTask();
+  });
+}
+
+function toggleTheme() {
+  document.body.style.background =
+    document.body.style.background === "black" ? "white" : "black";
+  document.body.style.color =
+    document.body.style.color === "white" ? "black" : "white";
+}
+</script>
+
+</body>
+</html>
