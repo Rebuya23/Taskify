@@ -6,18 +6,18 @@
 
 <style>
 
+/* TOP CENTER */
 body{
   font-family:Arial;
   background:white;
   color:black;
   transition:.25s;
   margin:0;
-
   display:flex;
-  justify-content:center; 
-  align-items:flex-start; 
+  justify-content:center;
+  align-items:flex-start;
   min-height:100vh;
-  padding-top:40px;       
+  padding-top:40px;
 }
 
 .wrapper{
@@ -35,15 +35,29 @@ button.delete{background:#F44336;color:white}
 button.theme{background:#9E9E9E;color:white}
 
 ul{padding-left:0}
+
+/* ✅ task bar layout */
 li{
   list-style:none;
   margin:5px 0;
-  padding:6px;
-  cursor:pointer;
+  padding:6px 10px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  cursor:default;
 }
+
 li:hover{background:#eee}
 li.selected{background:#cce5ff}
 li.done span{text-decoration:line-through;color:gray}
+
+/* left group (checkbox + text) */
+.left{
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+
 </style>
 </head>
 
@@ -56,7 +70,7 @@ li.done span{text-decoration:line-through;color:gray}
 <p>Created by: <b>Aljomar M. Rebuya BSIT 2D</b></p>
 
 <input id="taskInput" placeholder="Enter task">
-<button class="add" id="addBtn">Add task</button>
+<button class="add" id="addBtn">+</button>
 
 <br><br>
 
@@ -97,26 +111,42 @@ input.addEventListener("keydown",e=>{
   if(e.key==="Enter") addTask();
 });
 
+/* ✅ CREATE TASK */
 function createTask(text){
+
   const li=document.createElement("li");
 
-  const check=document.createElement("input");
-  check.type="checkbox";
+  /* LEFT SIDE (checkbox + text) */
+  const left=document.createElement("div");
+  left.className="left";
 
+  /* SELECT CHECKBOX */
+  const select=document.createElement("input");
+  select.type="checkbox";
+
+  select.addEventListener("change",()=>{
+    li.classList.toggle("selected",select.checked);
+  });
+
+  /* TASK TEXT */
   const span=document.createElement("span");
-  span.textContent=" "+text;
+  span.textContent=text;
 
+  /* COMPLETE CHECKBOX */
+  const done=document.createElement("input");
+  done.type="checkbox";
+
+  done.addEventListener("change",()=>{
+    li.classList.toggle("done",done.checked);
+    updateCounts();
+  });
+
+  /* DELETE BUTTON */
   const del=document.createElement("button");
   del.textContent="X";
   del.className="delete";
 
-  check.addEventListener("change",()=>{
-    li.classList.toggle("done",check.checked);
-    updateCounts();
-  });
-
-  del.addEventListener("click",(e)=>{
-    e.stopPropagation();
+  del.addEventListener("click",()=>{
     if(confirm(`Delete "${text}"?`)){
       originalTasks=originalTasks.filter(t=>t!==text);
       li.remove();
@@ -125,8 +155,8 @@ function createTask(text){
     }
   });
 
-  span.addEventListener("dblclick",(e)=>{
-    e.stopPropagation();
+  /* EDIT DOUBLE CLICK */
+  span.addEventListener("dblclick",()=>{
     const newText=prompt("Edit task:",text);
     if(!newText||newText===text) return;
 
@@ -136,16 +166,13 @@ function createTask(text){
     const i=originalTasks.indexOf(text);
     originalTasks[i]=newText;
 
-    span.textContent=" "+newText;
+    span.textContent=newText;
     edited++;
     updateCounts();
   });
 
-  li.addEventListener("click",()=>{
-    li.classList.toggle("selected");
-  });
-
-  li.append(check,span,del);
+  left.append(select,done,span);
+  li.append(left,del);
   list.appendChild(li);
 }
 
@@ -172,7 +199,7 @@ function deleteSelected(){
 
   if(confirm(`Delete ${selected.length} selected tasks?`)){
     selected.forEach(li=>{
-      const text=li.querySelector("span").textContent.trim();
+      const text=li.querySelector("span").textContent;
       originalTasks=originalTasks.filter(t=>t!==text);
       li.remove();
       deleted++;
