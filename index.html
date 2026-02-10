@@ -6,18 +6,19 @@
 
 <style>
 
-/* TOP CENTER */
+/* ✅ TOP CENTER */
 body{
   font-family:Arial;
   background:white;
   color:black;
   transition:.25s;
   margin:0;
+
   display:flex;
-  justify-content:center;
-  align-items:flex-start;
+  justify-content:center;   /* center horizontally */
+  align-items:flex-start;   /* stay at top */
   min-height:100vh;
-  padding-top:40px;
+  padding-top:40px;         /* space from top */
 }
 
 .wrapper{
@@ -35,29 +36,15 @@ button.delete{background:#F44336;color:white}
 button.theme{background:#9E9E9E;color:white}
 
 ul{padding-left:0}
-
-/* ✅ task bar layout */
 li{
   list-style:none;
   margin:5px 0;
-  padding:6px 10px;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  cursor:default;
+  padding:6px;
+  cursor:pointer;
 }
-
 li:hover{background:#eee}
 li.selected{background:#cce5ff}
 li.done span{text-decoration:line-through;color:gray}
-
-/* left group (checkbox + text) */
-.left{
-  display:flex;
-  align-items:center;
-  gap:8px;
-}
-
 </style>
 </head>
 
@@ -111,42 +98,26 @@ input.addEventListener("keydown",e=>{
   if(e.key==="Enter") addTask();
 });
 
-/* ✅ CREATE TASK */
 function createTask(text){
-
   const li=document.createElement("li");
 
-  /* LEFT SIDE (checkbox + text) */
-  const left=document.createElement("div");
-  left.className="left";
+  const check=document.createElement("input");
+  check.type="checkbox";
 
-  /* SELECT CHECKBOX */
-  const select=document.createElement("input");
-  select.type="checkbox";
-
-  select.addEventListener("change",()=>{
-    li.classList.toggle("selected",select.checked);
-  });
-
-  /* TASK TEXT */
   const span=document.createElement("span");
-  span.textContent=text;
+  span.textContent=" "+text;
 
-  /* COMPLETE CHECKBOX */
-  const done=document.createElement("input");
-  done.type="checkbox";
-
-  done.addEventListener("change",()=>{
-    li.classList.toggle("done",done.checked);
-    updateCounts();
-  });
-
-  /* DELETE BUTTON */
   const del=document.createElement("button");
   del.textContent="X";
   del.className="delete";
 
-  del.addEventListener("click",()=>{
+  check.addEventListener("change",()=>{
+    li.classList.toggle("done",check.checked);
+    updateCounts();
+  });
+
+  del.addEventListener("click",(e)=>{
+    e.stopPropagation();
     if(confirm(`Delete "${text}"?`)){
       originalTasks=originalTasks.filter(t=>t!==text);
       li.remove();
@@ -155,8 +126,8 @@ function createTask(text){
     }
   });
 
-  /* EDIT DOUBLE CLICK */
-  span.addEventListener("dblclick",()=>{
+  span.addEventListener("dblclick",(e)=>{
+    e.stopPropagation();
     const newText=prompt("Edit task:",text);
     if(!newText||newText===text) return;
 
@@ -166,13 +137,16 @@ function createTask(text){
     const i=originalTasks.indexOf(text);
     originalTasks[i]=newText;
 
-    span.textContent=newText;
+    span.textContent=" "+newText;
     edited++;
     updateCounts();
   });
 
-  left.append(select,done,span);
-  li.append(left,del);
+  li.addEventListener("click",()=>{
+    li.classList.toggle("selected");
+  });
+
+  li.append(check,span,del);
   list.appendChild(li);
 }
 
@@ -199,7 +173,7 @@ function deleteSelected(){
 
   if(confirm(`Delete ${selected.length} selected tasks?`)){
     selected.forEach(li=>{
-      const text=li.querySelector("span").textContent;
+      const text=li.querySelector("span").textContent.trim();
       originalTasks=originalTasks.filter(t=>t!==text);
       li.remove();
       deleted++;
