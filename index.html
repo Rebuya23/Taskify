@@ -5,14 +5,12 @@
 <title>Taskify</title>
 
 <style>
-/* ===== BODY ===== */
 body{
   font-family: Arial;
   background:#cbf5dd;
   color:black;
   transition:.25s;
   margin:0;
-
   display:flex;
   justify-content:center;
   align-items:flex-start;
@@ -20,14 +18,12 @@ body{
   padding-top:40px;
 }
 
-/* ===== WRAPPER ===== */
 .wrapper{
   text-align:center;
   max-width:600px;
   width:100%;
 }
 
-/* ===== INPUT + BUTTONS ===== */
 input,button{
   padding:6px 10px;
   margin:2px;
@@ -38,10 +34,8 @@ button.sort{background:#2196F3;color:white}
 button.reset{background:#FFC107}
 button.delete{background:#F44336;color:white}
 button.complete{background:#2ecc71;color:white}
-button.select{background:#5c7cfa;color:white}
 button.theme{background:#9E9E9E;color:white}
 
-/* ===== LIST ===== */
 ul{padding-left:0}
 
 li{
@@ -54,7 +48,7 @@ li{
 }
 
 li:hover{background:#eee}
-li.selected{background:#cce5ff}
+li.selected{background:#ffe8a3}
 li.done{background:#b7f7c5}
 
 li.done span{
@@ -83,6 +77,12 @@ li span:hover{
   display:flex;
   align-items:center;
   gap:6px;
+}
+
+.select{
+  width:16px;
+  height:16px;
+  cursor:pointer;
 }
 </style>
 </head>
@@ -118,7 +118,6 @@ Edited: <span id="edited">0</span>
 </div>
 
 <script>
-/* ===== VARIABLES ===== */
 let originalTasks = [];
 let deleted = 0;
 let edited = 0;
@@ -127,7 +126,6 @@ let dark = false;
 const input = document.getElementById("taskInput");
 const list  = document.getElementById("taskList");
 
-/* ===== BUTTON EVENTS ===== */
 document.getElementById("addBtn").onclick       = addTask;
 document.getElementById("azBtn").onclick        = sortAZ;
 document.getElementById("zaBtn").onclick        = sortZA;
@@ -139,7 +137,6 @@ input.addEventListener("keydown", e=>{
   if(e.key==="Enter") addTask();
 });
 
-/* ===== CREATE TASK ===== */
 function createTask(text){
 
   const li = document.createElement("li");
@@ -153,15 +150,14 @@ function createTask(text){
   const span = document.createElement("span");
   span.textContent = text;
 
-  /* SELECT BUTTON */
-  const selectBtn = document.createElement("button");
+  const selectBtn = document.createElement("input");
+  selectBtn.type = "checkbox";
   selectBtn.className="select";
   selectBtn.onclick = e=>{
     e.stopPropagation();
-    li.classList.toggle("selected");
+    li.classList.toggle("selected", selectBtn.checked);
   };
 
-  /* COMPLETE BUTTON */
   const completeBtn = document.createElement("button");
   completeBtn.textContent="✔";
   completeBtn.className="complete";
@@ -172,14 +168,12 @@ function createTask(text){
     updateCounts();
   };
 
-  /* DELETE BUTTON */
   const del = document.createElement("button");
   del.textContent="X";
   del.className="delete";
 
   del.onclick = e=>{
     e.stopPropagation();
-
     if(confirm(`Delete "${span.textContent}"?`)){
       originalTasks = originalTasks.filter(t=>t!==span.textContent);
       li.remove();
@@ -188,10 +182,8 @@ function createTask(text){
     }
   };
 
-  /* EDIT TEXT */
   span.onclick = e=>{
     e.stopPropagation();
-
     const oldText = span.textContent;
     const newText = prompt("Edit task:", oldText);
 
@@ -215,7 +207,6 @@ function createTask(text){
   list.appendChild(li);
 }
 
-/* ===== ADD TASK ===== */
 function addTask(){
 
   const text = input.value.trim();
@@ -232,7 +223,6 @@ function addTask(){
   updateCounts();
 }
 
-/* ===== DELETE SELECTED ===== */
 function deleteSelected(){
 
   const selected = list.querySelectorAll(".selected");
@@ -253,14 +243,12 @@ function deleteSelected(){
   }
 }
 
-/* ===== RESET ===== */
 function resetTasks(){
   list.innerHTML="";
   originalTasks.forEach(t=>createTask(t));
   updateCounts();
 }
 
-/* ===== SORT ===== */
 function sortAZ(){
   [...list.children]
     .sort((a,b)=>
@@ -279,14 +267,12 @@ function sortZA(){
     .forEach(li=>list.appendChild(li));
 }
 
-/* ===== THEME ===== */
 function toggleTheme(){
   dark = !dark;
   document.body.style.background = dark ? "black" : "#cbf5dd";
   document.body.style.color      = dark ? "white" : "black";
 }
 
-/* ===== COUNTERS ===== */
 function updateCounts(){
   document.getElementById("total").textContent     = list.children.length;
   document.getElementById("completed").textContent =
